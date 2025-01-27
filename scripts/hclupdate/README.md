@@ -13,7 +13,7 @@ root of this script directory.
 
 The `hclupdate.py` script provides several command-line arguments to control how it processes and updates the `customhcl.json` file and applies it to `vCenter`. Below is a detailed description of each argument:
 ### **Arguments**
-1. **`--hcl-path` **
+- `--hcl-path` **
     - **Type**: `string`
     - **Description**: Specifies the path to the source `customhcl.json` file.
         - If not provided, the script defaults to a predefined path (`customhcl`) as the source.
@@ -22,21 +22,14 @@ The `hclupdate.py` script provides several command-line arguments to control how
 ``` bash
      python hclupdate.py --hcl-path /path/to/my/customhcl.json
 ```
-2. **`--test` **
+- **`--test` **
     - **Type**: `flag` (does not require a value)
     - **Description**: Runs the script in **test mode**, meaning it will simulate changes without actually modifying files.
-        - The script will:
-            - Fetch and display the new `timestamp` and `jsonUpdatedTime` values.
-            - Show what would be updated in the `customhcl.json` file (but the file itself is not modified).
-
-    - **When to Use**:
-        - Useful for verifying changes before applying them.
-
     - **Example**:
 ``` bash
      python hclupdate.py --test
 ```
-3. **`--update-vcenter` **
+- **`--update-vcenter` **
     - **Type**: `flag` (does not require a value)
     - **Description**: Triggers the script to apply the updated `customhcl.json` file to a vCenter server using the **REST API**.
         - Requires a valid `--profile` argument (or defaults to the general `~/.pgvm/cred.json` if no profile is supplied).
@@ -49,7 +42,7 @@ The `hclupdate.py` script provides several command-line arguments to control how
 ``` bash
      python hclupdate.py --update-vcenter --profile myprofile
 ```
-4. **`--profile` **
+- **`--profile` **
     - **Type**: `string` (optional)
     - **Description**: Specifies the profile to use for retrieving vCenter credentials.
         - Profiles are expected to be stored in `~/.pgvm/<profile>/cred.json`.
