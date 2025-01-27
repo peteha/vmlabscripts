@@ -13,7 +13,7 @@ credbuilder.py --script hclupdate
 
 ## credbuilder
 
-The `credbuilder.py` *script is designed to **manage credentials** for various profiles, providing users with the ability to create, update, and maintain credential files (`cred.json`). These credentials are often used by other scripts, such as those interacting with APIs or systems like vCenter. The script features robust handling for multiple profiles, backup management, and user input to customize the stored credentials.
+The `credbuilder.py` script is designed to **manage credentials** for various profiles, providing users with the ability to create, update, and maintain credential files (`cred.json`). These credentials are often used by other scripts, such as those interacting with APIs or systems like vCenter. The script features robust handling for multiple profiles, backup management, and user input to customize the stored credentials.
 
 ### Key Features
 1. **Profile Management**:

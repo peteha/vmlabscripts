@@ -132,7 +132,7 @@ def apply_to_vcenter(profile, path_customhcl):
     try:
         # Build the PowerShell command
         command = [
-            "powershell",
+            "pwsh",
             "-NoProfile",
             "-ExecutionPolicy",
             "Bypass",
