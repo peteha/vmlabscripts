@@ -97,6 +97,7 @@ def verify_parameters(existing, base):
 
 def load_base_structure(base_structure_file):
     """Load the BASE_STRUCTURE from the specified file."""
+    # print(base_structure_file)
     if not os.path.exists ( base_structure_file ):
         print ( "Script does not require credentials" )
         return None
