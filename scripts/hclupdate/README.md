@@ -7,6 +7,10 @@ with the latest version.
 
 I run this in a daily cron job on a host to keep my lab up to date.
 
+The process uses a credential file stored in ~/.pgvm/.  You can create this file using `credbuilder.py` in the 
+root of this script directory.
+
+
 The `hclupdate.py` script provides several command-line arguments to control how it processes and updates the `customhcl.json` file and applies it to `vCenter`. Below is a detailed description of each argument:
 ### **Arguments**
 1. **`--hcl-path` **
