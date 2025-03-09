@@ -1,7 +1,9 @@
 {
-    "vcenter": {
-        "VCENTER_SERVER": "",
-        "VCENTER_USER": "",
-        "VCENTER_PASSWORD": ""
+    "lab": {
+        "vcenter": {
+            "vcenter_server": "",
+            "vcenter_user": "",
+            "vcenter_password": ""
+        }
     }
 }

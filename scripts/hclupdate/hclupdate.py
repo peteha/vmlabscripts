@@ -4,14 +4,27 @@ import shutil
 import argparse
 import requests
 import subprocess
-
+from colorama import Fore, Style
 
 ## Parameters for Script
 customhcl_path = None
-customhcl_default_path = "customhcl.json"
+customhcl_default_path = "json/customhcl.json"
 remote_json_url = "https://partnerweb.vmware.com/service/vsan/all.json"
 backup_path = "json/backup/customhcl_backup.json"
 cred_path = "~/.pgvm/"
+
+
+def info_msg(message):
+    return f"{Fore.GREEN}[INFO] {message}{Style.RESET_ALL}"
+
+def error_msg(message):
+    return f"{Fore.RED}[ERROR] {message}{Style.RESET_ALL}"
+
+def prompt_msg(message, txt: bool = True):
+    if txt:
+        return f"{Fore.YELLOW}[PROMPT] {message}{Style.RESET_ALL}"
+    else:
+        return f"{Fore.YELLOW}{message}{Style.RESET_ALL}"
 
 def fetch_remote_data(url):
     """
@@ -21,12 +34,12 @@ def fetch_remote_data(url):
     :return: Parsed JSON data.
     """
     try:
-        print ( f"Fetching data from {url}..." )
+        print ( prompt_msg( f"Fetching data from {url}..." ) )
         response = requests.get ( url )
         response.raise_for_status ()
         return response.json ()
     except requests.exceptions.RequestException as e:
-        print ( f"Error fetching data: {e}" )
+        print ( error_msg( f"Error fetching data: {e}") )
         return None
 
 
@@ -38,16 +51,16 @@ def backup_file(filepath, backup_path):
     :param backup_path: Path to save the backup file.
     """
     # Ensure the backup directory exists
-    backup_dir = os.path.dirname ( backup_path )
+    backup_dir = os.path.dirname (backup_path)
     if not os.path.exists ( backup_dir ):
-        print ( f"Backup directory '{backup_dir}' does not exist. Creating it..." )
+        print ( prompt_msg( f"Backup directory '{backup_dir}' does not exist. Creating it..." ) )
         os.makedirs ( backup_dir )
 
     if os.path.exists ( filepath ):
-        print ( f"Backing up {filepath} to {backup_path}..." )
-        shutil.copy ( filepath, backup_path )
+        print (prompt_msg( f"Backing up {filepath} to {backup_path}..."))
+        shutil.copy (filepath, backup_path)
     else:
-        print ( f"File {filepath} does not exist. Cannot create backup." )
+        print ( prompt_msg( f"File {filepath} does not exist. Cannot create backup." ) )
 
 
 def update_json_file(filepath, timestamp, json_updated_time, test_mode=False):
@@ -62,7 +75,7 @@ def update_json_file(filepath, timestamp, json_updated_time, test_mode=False):
     :param test_mode: If True, outputs changes without modifying the file.
     """
     if not os.path.exists ( filepath ):
-        print ( f"File {filepath} not found. Aborting..." )
+        print ( error_msg( "File {filepath} not found. Aborting..." ) )
         return
 
     try:
@@ -76,18 +89,18 @@ def update_json_file(filepath, timestamp, json_updated_time, test_mode=False):
         updated_data [ "jsonUpdatedTime" ] = json_updated_time
 
         if test_mode:
-            print ( "\n[TEST MODE] The file will not be updated. Changes are:" )
-            print ( f"  - Old 'timestamp': {data.get ( 'timestamp' )}" )
-            print ( f"  - New 'timestamp': {timestamp}" )
-            print ( f"  - Old 'jsonUpdatedTime': {data.get ( 'jsonUpdatedTime' )}" )
-            print ( f"  - New 'jsonUpdatedTime': {json_updated_time}" )
+            print ( prompt_msg( "\n[TEST MODE] The file will not be updated. Changes are:" ) )
+            print ( prompt_msg( f"  - Old 'timestamp': {data.get ( 'timestamp' )}" ) )
+            print ( prompt_msg( f"  - New 'timestamp': {timestamp}" ) )
+            print ( prompt_msg( f"  - Old 'jsonUpdatedTime': {data.get ( 'jsonUpdatedTime' )}" ) )
+            print ( prompt_msg( f"  - New 'jsonUpdatedTime': {json_updated_time}" ) )
         else:
             # Save the updated JSON data
             with open ( filepath, 'w' ) as outfile:
                 json.dump ( updated_data, outfile, indent=4 )
-            print ( f"File {filepath} successfully updated." )
+            print ( info_msg( f"File {filepath} successfully updated." ) )
     except Exception as e:
-        print ( f"Error updating JSON file: {e}" )
+        print ( error_msg( f"Error updating JSON file: {e}" ) )
 
 
 def apply_to_vcenter(profile, path_customhcl):
@@ -104,28 +117,29 @@ def apply_to_vcenter(profile, path_customhcl):
 
     # Verify that the credentials file exists
     if not os.path.exists ( credentials_path ):
-        print ( f"Credentials file does not exist for the profile '{profile}'. Expected at: {credentials_path}" )
+        print ( prompt_msg( f"Credentials file does not exist for the profile '{profile}'. Expected at: {credentials_path}" ) )
         exit ( 1 )
 
     # Load credentials
     try:
         with open ( credentials_path, 'r' ) as file:
             creds = json.load ( file )
-        vcenter_host = creds["vcenter"]["VCENTER_SERVER"]
-        vcenter_user = creds["vcenter"]["VCENTER_USER"]
-        vcenter_password = creds["vcenter"]["VCENTER_PASSWORD"]
+        vcenter_host = creds["lab"]["vcenter"]["vcenter_server"]
+        vcenter_user = creds["lab"]["vcenter"]["vcenter_user"]
+        vcenter_password = creds["lab"]["vcenter"]["vcenter_password"]
+        print ( prompt_msg( f"Connecting to {vcenter_host}..." ) )
     except Exception as e:
-        print ( f"Error loading credentials: {e}" )
+        print ( error_msg ( f"Error loading credentials: {e}" ) )
         exit ( 1 )
 
     # Ensure all required credentials are available
     if not (vcenter_host and vcenter_user and vcenter_password):
-        print ( "Incomplete credentials. Ensure the 'vcenter_host', 'username', and 'password' fields are defined." )
+        print ( error_msg ( "Incomplete credentials. Ensure the 'vcenter_host', 'username', and 'password' fields are defined." ) )
         exit ( 1 )
 
     # Path to the customhcl.json file
     if not os.path.exists ( path_customhcl ):
-        print ( f"The HCL file '{path_customhcl}' does not exist." )
+        print ( error_msg ( f"The HCL file '{path_customhcl}' does not exist." ) )
         exit ( 1 )
 
     powershell_script_path = "hclvcenter.ps1"  # Replace with the path to your PowerShell script
@@ -148,16 +162,15 @@ def apply_to_vcenter(profile, path_customhcl):
 
         # Check the result
         if result.returncode == 0:
-            print ( "PowerShell script executed successfully." )
-            print ( "Output:" )
-            print ( result.stdout )
+            print ( info_msg( "PowerShell script executed successfully." ) )
         else:
-            print ( "PowerShell script execution failed." )
-            print ( "Error Output:" )
-            print ( result.stderr )
+            print ( error_msg ( "PowerShell script execution failed." ) )
+            print ( error_msg ( "Error Output:" ) )
+            print ( error_msg ( result.stderr ) )
 
     except Exception as e:
-        print ( f"An error occurred while running the PowerShell script: {e}" )
+        print ( error_msg ( f"An error occurred while running the PowerShell script: {e}" ) )
+        exit ( 1 )
 
 
 def prepare_file(source_path, destination_path):
@@ -169,14 +182,14 @@ def prepare_file(source_path, destination_path):
     # Ensure the destination directory exists
     destination_dir = os.path.dirname ( destination_path )
     if not os.path.exists ( destination_dir ):
-        print ( f"Creating destination directory at {destination_dir}..." )
+        print ( prompt_msg( "Creating destination directory at {destination_dir}..." ) )
         os.makedirs ( destination_dir )
 
     if not os.path.exists ( source_path ):
-        print ( f"Source file {source_path} does not exist. Exiting..." )
+        print ( error_msg ( f"Source file {source_path} does not exist. Exiting..." ) )
         exit ( 1 )
 
-    print ( f"Copying {source_path} to {destination_path}..." )
+    print ( prompt_msg( f"Copying {source_path} to {destination_path}..." ) )
     shutil.copy ( source_path, destination_path )
 
 
@@ -206,18 +219,16 @@ def main():
     # Fetch data from remote URL
     remote_data = fetch_remote_data ( remote_json_url )
     if not remote_data:
-        print ( "Failed to fetch remote data. Exiting..." )
+        print ( error_msg( "Failed to fetch remote data. Exiting..." ) )
         return
 
     # Extract timestamp and jsonUpdatedTime
     timestamp = remote_data.get ( "timestamp" )
     json_updated_time = remote_data.get ( "jsonUpdatedTime" )
     if timestamp is None or json_updated_time is None:
-        print ( "Invalid data retrieved from remote JSON. Missing `timestamp` or `jsonUpdatedTime`. Exiting..." )
+        print ( error_msg ( "Invalid data retrieved from remote JSON. Missing `timestamp` or `jsonUpdatedTime`. Exiting..." ) )
         return
-
-    print ( f"Retrieved timestamp: {timestamp}" )
-    print ( f"Retrieved jsonUpdatedTime: {json_updated_time}" )
+    print ( info_msg( f"Retrieved jsonUpdatedTime: {json_updated_time}" ) )
 
     # If not in test mode, back up the existing customhcl.json
     if not test_mode:
