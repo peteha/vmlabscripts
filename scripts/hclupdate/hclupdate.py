@@ -43,22 +43,22 @@ def fetch_remote_data(url):
         return None
 
 
-def backup_file(filepath, backup_path):
+def backup_file(filepath, int_backup_path):
     """
     Create a backup of the provided JSON file.
 
     :param filepath: Path to the original JSON file.
-    :param backup_path: Path to save the backup file.
+    :param int_backup_path: Path to save the backup file.
     """
     # Ensure the backup directory exists
-    backup_dir = os.path.dirname (backup_path)
+    backup_dir = os.path.dirname (int_backup_path)
     if not os.path.exists ( backup_dir ):
         print ( prompt_msg( f"Backup directory '{backup_dir}' does not exist. Creating it..." ) )
         os.makedirs ( backup_dir )
 
     if os.path.exists ( filepath ):
-        print (prompt_msg( f"Backing up {filepath} to {backup_path}..."))
-        shutil.copy (filepath, backup_path)
+        print (prompt_msg( f"Backing up {filepath} to {int_backup_path}..."))
+        shutil.copy (filepath, int_backup_path)
     else:
         print ( prompt_msg( f"File {filepath} does not exist. Cannot create backup." ) )
 
@@ -108,6 +108,8 @@ def apply_to_vcenter(profile, path_customhcl):
     Apply the customhcl.json to the vCenter via REST API.
 
     :param profile: Name of the profile to use for vCenter credentials.
+
+    :param path_customhcl: Path to the customhcl.json file to apply.
     """
     # Path to credentials
     if profile:
@@ -163,6 +165,7 @@ def apply_to_vcenter(profile, path_customhcl):
         # Check the result
         if result.returncode == 0:
             print ( info_msg( "PowerShell script executed successfully." ) )
+            print ( info_msg(result.stdout) )
         else:
             print ( error_msg ( "PowerShell script execution failed." ) )
             print ( error_msg ( "Error Output:" ) )
